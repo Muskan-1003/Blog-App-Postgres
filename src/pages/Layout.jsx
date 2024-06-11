@@ -1,14 +1,60 @@
-import React from 'react'
+import React from "react";
+import { Outlet, Link } from "react-router-dom";
+import Footer from "../component/Footer";
 
 const Layout = () => {
+  const menu = [
+    { text: "Nature", path: "/" },
+    { text: "Travel", path: "/" },
+    { text: "Technology", path: "/" },
+    { text: "Politics", path: "/" },
+  ];
   return (
     <div>
-        
+      {/* header */}
 
+      <div className="border-b">
+        <div className="px-5 py-5 flex justify-between">
+          <Link to="/">
+            <span className="font-extrabold text-2xl ">PEN&PIXEL</span>
+          </Link>
+          <div className="flex">
+            <ul className="flex">
+              {menu.map((x, i) => {
+                return (
+                  <li key={i}>
+                    <Link
+                      className="p-2 items-center justify-center flex"
+                      to={`/?category=${x.text}`}
+                    >
+                      <span>{x.text}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-      
+            <button className="bg-[#DBB5B5] text-white px-2 py-1 rounded font-semibold">
+              <Link to="/create">+ New Post</Link>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* <Body></Body> */}
+      <div className="flex mx-auto px-5 md:px-20">
+        <div className="mt-5 mb-5 min-h-[500px] w-full">
+          <Outlet></Outlet>
+        </div>
+      </div>
+      {/* <Footer></Footer> */}
+      <div className="flex bg-[#96B6C5]">
+        <div className="flex mx-auto">
+          <Footer />
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;
