@@ -3,15 +3,19 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { MdCloudUpload } from "react-icons/md";
 import Display from "../component/Display";
+import { uploadFile, createBlog } from '../api/Api';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const CreateBlog = () => {
     const [images, setImages] = useState([]);
 
     const [formData, setFormData] = useState({
         title: '',
-        category: '',
-        image: [],
-        post: ''
+        image: '',
+        post: "<p><br></p>",
+        category: ''
     });
 
     const menu = [
@@ -22,19 +26,52 @@ const CreateBlog = () => {
     ];
 
     const handleChange = (e) => {
-        if (e.target.name === "image") {
-            const files = Array.from(e.target.files);
-            setImages([...images, ...files]);
-            setFormData({ ...formData, image: [...formData.image, ...files] });
-        } else {
-            setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleUpload = async (event) => {
+        try {
+            const uploadedFile = await uploadFile(event.target.files[0]);
+            if (uploadedFile.path) {
+                setFormData({ ...formData, image: uploadedFile.path });
+                setImages([...images, uploadedFile.path]);
+                toast.success('Image uploaded successfully!');
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            toast.error('Failed to upload image.');
         }
     };
+
+    const handelSubmit = async () => {
+        try {
+            const response = await createBlog(formData);
+    
+            if (response.status === 200) { // Assuming status 200 means success
+                setFormData({
+                    title: '',
+                    image: '',
+                    post: '<p><br></p>',
+                    category: ''
+                });
+                // setImages([]);
+                toast.success('Blog post created successfully!');
+            } else {
+                toast.error(`Failed to create blog post: ${response.message}`);
+            }
+        } catch (error) {
+            console.error('Error creating blog post:', error);
+            toast.error('An error occurred while creating the blog post.');
+        }
+    };
+    
 
     return (
         <div className='flex w-full items-center justify-center'>
             <div className="bg-[#DBB5B5]/30 w-[60%] p-5 rounded-xl">
+         
                 <h1 className='text-2xl mb-5'>Create Blog Post</h1>
+                
                 <div className="flex flex-col">
                     <label htmlFor="title" className='ml-1 text-gray-500'>Title</label>
                     <input 
@@ -56,10 +93,9 @@ const CreateBlog = () => {
                         <option value="" disabled>Select Category</option>
                         {menu.map(x => <option key={x.text} value={x.text}>{x.text}</option>)}
                     </select>
-
                     <div className="mt-2">
                         <label htmlFor="image" className='ml-1 text-gray-500'>Image</label>
-                        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4">
+                        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-1">
                             {images.length > 0 && images.map((image, index) => (
                                 <Display key={index} image={image} />
                             ))}
@@ -71,7 +107,7 @@ const CreateBlog = () => {
                                         className="hidden"
                                         accept="image/*"
                                         multiple
-                                        onChange={handleChange}
+                                        onChange={handleUpload}
                                         name="image"
                                     />
                                     <MdCloudUpload className="text-lg text-black" />
@@ -89,9 +125,15 @@ const CreateBlog = () => {
                         onChange={(value) => setFormData({ ...formData, post: value })}
                     />
                     <hr />
-                    <button className='bg-[#1e5b77] text-white h-8 w-[100px] mt-2 rounded'>Submit</button>
+                    <button 
+                        className='bg-[#1e5b77] text-white h-8 w-[100px] mt-2 rounded'
+                        onClick={handelSubmit}
+                    >
+                        Submit
+                    </button>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 };
